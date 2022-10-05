@@ -34,6 +34,11 @@ final class SelectQuery
     public $fromClause = null;
 
     /**
+     * @var ?WithClause
+     */
+    public $withClause = null;
+
+    /**
      * @var array<int, Expression>|null
      */
     public $groupBy = null;

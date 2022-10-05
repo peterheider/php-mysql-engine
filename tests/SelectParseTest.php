@@ -1,6 +1,7 @@
 <?php
 namespace Vimeo\MysqlEngine\Tests;
 
+use Vimeo\MysqlEngine\Parser\SQLParser;
 use Vimeo\MysqlEngine\Query\SelectQuery;
 use Vimeo\MysqlEngine\Query\Expression\ColumnExpression;
 use Vimeo\MysqlEngine\Query\Expression\CaseOperatorExpression;
@@ -315,5 +316,22 @@ class SelectParseTest extends \PHPUnit\Framework\TestCase
         $sql = "(SELECT * FROM `foo`) UNION ALL (SELECT * FROM `bar`)";
 
         $select_query = \Vimeo\MysqlEngine\Parser\SQLParser::parse($sql);
+    }
+
+    public function testSelectWithWithClause()
+    {
+        $sql = 'WITH cte1 AS (SELECT * FROM `bar`), cte2 AS (SELECT foo FROM cte1) SELECT * FROM cte2';
+
+        $select_query = SQLParser::parse($sql);
+        $this->assertInstanceOf(SelectQuery::class, $select_query);
+    }
+
+    public function testSelectWithRecursiveWithClause()
+    {
+        $sql = 'WITH RECURSIVE cte1 AS (WITH cte2 AS (SELECT counter FROM `cte1`) SELECT counter + 1 FROM cte2), cte3 AS (SELECT foo FROM cte1) SELECT * FROM cte3';
+
+        $select_query = SQLParser::parse($sql);
+        $this->assertInstanceOf(SelectQuery::class, $select_query);
+        $this->assertTrue($select_query->withClause->recursive);
     }
 }

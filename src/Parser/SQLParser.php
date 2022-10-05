@@ -17,6 +17,7 @@ final class SQLParser
      * @var array<string, string>
      */
     const CLAUSES = [
+        'WITH' => true,
         'SELECT' => true,
         'FROM' => true,
         'WHERE' => true,
@@ -101,7 +102,7 @@ final class SQLParser
         'ASC' => true,
         'DESC' => true,
         'AS' => true,
-        'WITH' => true,
+        'RECURSIVE' => true,
         'ON' => true,
         'OFFSET' => true,
         'BY' => true,
@@ -173,6 +174,7 @@ final class SQLParser
             throw new ParserException("Unexpected {$token->value}");
         }
         switch ($token->value) {
+            case 'WITH':
             case 'SELECT':
                 $select = new SelectParser(0, $tokens, $sql);
                 return $select->parse();

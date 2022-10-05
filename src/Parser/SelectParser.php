@@ -10,12 +10,13 @@ final class SelectParser
 {
     const CLAUSE_ORDER = [
         'SELECT' => 1,
-        'FROM' => 2,
-        'WHERE' => 3,
-        'GROUP' => 4,
-        'HAVING' => 5,
-        'ORDER' => 6,
-        'LIMIT' => 7
+        'WITH' => 2,
+        'FROM' => 3,
+        'WHERE' => 4,
+        'GROUP' => 5,
+        'HAVING' => 6,
+        'ORDER' => 7,
+        'LIMIT' => 8
     ];
 
     /**
@@ -63,8 +64,8 @@ final class SelectParser
             array_splice($this->tokens, $this->pointer, $close - $this->pointer + 1, $subquery_tokens);
         }
 
-        if ($this->tokens[$this->pointer]->value !== 'SELECT') {
-            throw new ParserException("Parser error: expected SELECT");
+        if ($this->tokens[$this->pointer]->value !== 'SELECT' && $this->tokens[$this->pointer]->value !== 'WITH') {
+            throw new ParserException("Parser error: expected SELECT or WITH");
         }
 
         $query = $this->parseMainSelect();
@@ -97,7 +98,9 @@ final class SelectParser
     private function parseMainSelect() : SelectQuery
     {
         $query = new SelectQuery($this->sql, $this->tokens[$this->pointer]->start);
-        $this->pointer++;
+        if ('WITH' !== $this->tokens[$this->pointer]->value) {
+            $this->pointer++;
+        }
 
         $count = \count($this->tokens);
 
@@ -165,6 +168,13 @@ final class SelectParser
                     }
                     $this->currentClause = $token->value;
                     switch ($token->value) {
+                        case 'WITH':
+                            $with = new WithParser($this->pointer, $this->tokens);
+                            list($this->pointer, $withClause) = $with->parse();
+                            $query->withClause = $withClause;
+                            $this->pointer++;
+                            $this->currentClause = 'SELECT';
+                            break;
                         case 'FROM':
                             $from = new FromParser($this->pointer, $this->tokens);
                             list($this->pointer, $fromClause) = $from->parse();
