@@ -206,7 +206,7 @@ final class SQLParser
      *
      * @return array<int, Token>
      */
-    private static function buildTokenListFromLexemes(array $tokens)
+    public static function buildTokenListFromLexemes(array $tokens)
     {
         $out = [];
         $count = \count($tokens);
